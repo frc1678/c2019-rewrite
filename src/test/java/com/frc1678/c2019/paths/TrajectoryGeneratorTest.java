@@ -90,6 +90,6 @@ public class TrajectoryGeneratorTest {
     public void test() {
         TrajectoryGenerator.getInstance().generateTrajectories();
 
-        verifyMirroredTrajectories(TrajectoryGenerator.getInstance().getTrajectorySet().crossAutoLine, true);
+        verifyMirroredTrajectories(TrajectoryGenerator.getInstance().getTrajectorySet().hab1ToRocket, true);
     }
 }

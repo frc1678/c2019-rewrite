@@ -35,4 +35,9 @@ public class MainDriveControlBoard implements IDriveControlBoard {
     public boolean getQuickTurn() {
         return mTurnStick.getRawButton(5);
     }
+
+    @Override
+    public boolean getInterruptAuto() {
+        return mThrottleStick.getRawButton(3);
+    }
 }

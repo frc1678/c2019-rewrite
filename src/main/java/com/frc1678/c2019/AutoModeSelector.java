@@ -1,9 +1,6 @@
 package com.frc1678.c2019;
 
-import com.frc1678.c2019.auto.AutoModeBase;
-import com.frc1678.c2019.auto.creators.AutoModeCreator;
-import com.frc1678.c2019.auto.creators.CharacterizeHighGearStraightCreator;
-import com.frc1678.c2019.auto.creators.CrossAutoLineCreator;
+import com.frc1678.c2019.auto.modes.*;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -12,34 +9,33 @@ import java.util.Optional;
 
 public class AutoModeSelector {
     enum StartingPosition {
-        LEFT,
-        RIGHT,
+        LEFT_HAB_1, RIGHT_HAB_1
     }
 
     enum DesiredMode {
         DO_NOTHING,
-        CROSS_AUTO_LINE,
+        ROCKET_HATCH,
         CHARACTERIZE_DRIVE,
     }
 
     private DesiredMode mCachedDesiredMode = null;
     private StartingPosition mCachedStartingPosition = null;
 
-    private Optional<AutoModeCreator> mCreator = Optional.empty();
+    private Optional<AutoModeBase> mAutoMode = Optional.empty();
 
     private SendableChooser<DesiredMode> mModeChooser;
     private SendableChooser<StartingPosition> mStartPositionChooser;
 
     public AutoModeSelector() {
         mModeChooser = new SendableChooser<>();
-        mModeChooser.setDefaultOption("Cross Auto Line", DesiredMode.CROSS_AUTO_LINE);
-        mModeChooser.addOption("Do Nothing", DesiredMode.DO_NOTHING);
+        mModeChooser.setDefaultOption("Do Nothing", DesiredMode.DO_NOTHING);
+        mModeChooser.addOption("Rocket Hatch", DesiredMode.ROCKET_HATCH);
         mModeChooser.addOption("Characterize Drive", DesiredMode.CHARACTERIZE_DRIVE);
         SmartDashboard.putData("Auto mode", mModeChooser);
 
         mStartPositionChooser = new SendableChooser<>();
-        mStartPositionChooser.setDefaultOption("Right", StartingPosition.RIGHT);
-        mStartPositionChooser.addOption("Left", StartingPosition.LEFT);
+        mStartPositionChooser.setDefaultOption("Right", StartingPosition.LEFT_HAB_1);
+        mStartPositionChooser.addOption("Left", StartingPosition.RIGHT_HAB_1);
         SmartDashboard.putData("Starting Position", mStartPositionChooser);
     }
 
@@ -48,19 +44,21 @@ public class AutoModeSelector {
         StartingPosition startingPosition = mStartPositionChooser.getSelected();
         if(mCachedDesiredMode != desiredMode || startingPosition != mCachedStartingPosition) {
             System.out.println("Auto selection changed, updating creator: desiredMode->" + desiredMode.name() + ", starting position->" + startingPosition.name());
-            mCreator = getCreatorForParams(desiredMode, startingPosition);
+            mAutoMode = getAutoModeForParams(desiredMode, startingPosition);
         }
         mCachedDesiredMode = desiredMode;
         mCachedStartingPosition = startingPosition;
     }
 
-    private Optional<AutoModeCreator> getCreatorForParams(DesiredMode mode, StartingPosition position) {
-        boolean startOnLeft = StartingPosition.LEFT == position;
+    private Optional<AutoModeBase> getAutoModeForParams(DesiredMode mode, StartingPosition position) {
+        boolean startOnLeft = StartingPosition.LEFT_HAB_1 == position;
         switch (mode) {
+            case DO_NOTHING:
+                return Optional.of(new DoNothingMode());
             case CHARACTERIZE_DRIVE:
-                return Optional.of(new CharacterizeHighGearStraightCreator());
-            case CROSS_AUTO_LINE:
-                return Optional.of(new CrossAutoLineCreator());
+                return Optional.of(new CharacterizeDrivebaseMode(false, true));
+            case ROCKET_HATCH:
+                return Optional.of(new RocketHatchMode(startOnLeft));
             default:
                 break;
         }
@@ -71,7 +69,7 @@ public class AutoModeSelector {
 
 
     public void reset() {
-        mCreator = Optional.empty();
+        mAutoMode = Optional.empty();
         mCachedDesiredMode = null;
     }
 
@@ -81,9 +79,13 @@ public class AutoModeSelector {
     }
 
     public Optional<AutoModeBase> getAutoMode() {
-        if (!mCreator.isPresent()) {
+        if (!mAutoMode.isPresent()) {
             return Optional.empty();
         }
-        return Optional.of(mCreator.get().getStateDependentAutoMode());
+        return mAutoMode;
+    }
+
+    public boolean isDriveByCamera() {
+        return mCachedDesiredMode == DesiredMode.DO_NOTHING;
     }
 }

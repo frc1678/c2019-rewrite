@@ -7,8 +7,8 @@
 
 package com.frc1678.c2019;
 
-import com.frc1678.c2019.auto.AutoModeBase;
-import com.frc1678.c2019.auto.AutoModeExecuter;
+import com.frc1678.c2019.auto.modes.AutoModeBase;
+import com.frc1678.c2019.auto.AutoModeExecutor;
 import com.frc1678.c2019.loops.Looper;
 import com.frc1678.c2019.paths.TrajectoryGenerator;
 import com.frc1678.c2019.statemachines.HatchIntakeStateMachine.WantedAction;
@@ -54,7 +54,9 @@ public class Robot extends TimedRobot {
     private Elevator mElevator = Elevator.getInstance();
     private Climber mClimber = Climber.getInstance();
 
-    private AutoModeExecuter mAutoModeExecuter;
+    private AutoModeExecutor mAutoModeExecutor;
+
+    private boolean mWantsDriverAuto;
 
     public Robot() {
         CrashTracker.logRobotConstruction();
@@ -90,8 +92,8 @@ public class Robot extends TimedRobot {
         try {
             CrashTracker.logDisabledInit();
             mEnabledLooper.stop();
-            if (mAutoModeExecuter != null) {
-                mAutoModeExecuter.stop();
+            if (mAutoModeExecutor != null) {
+                mAutoModeExecutor.stop();
             }
 
             mInfrastructure.setIsDuringAuto(true);
@@ -102,7 +104,7 @@ public class Robot extends TimedRobot {
             // Reset all auto mode state.
             mAutoModeSelector.reset();
             mAutoModeSelector.updateModeCreator();
-            mAutoModeExecuter = new AutoModeExecuter();
+            mAutoModeExecutor = new AutoModeExecutor();
 
             mDisabledLooper.start();
         } catch (Throwable t) {
@@ -127,7 +129,9 @@ public class Robot extends TimedRobot {
 
             mWrist.setRampRate(Constants.kAutoWristRampRate);
 
-            mAutoModeExecuter.start();
+            if (!mWantsDriverAuto) {
+                mAutoModeExecutor.start();
+            }
 
             mEnabledLooper.start();
         } catch (Throwable t) {
@@ -143,8 +147,8 @@ public class Robot extends TimedRobot {
         try {
             CrashTracker.logTeleopInit();
             mDisabledLooper.stop();
-            if (mAutoModeExecuter != null) {
-                mAutoModeExecuter.stop();
+            if (mAutoModeExecutor != null) {
+                mAutoModeExecutor.stop();
             }
 
             mInfrastructure.setIsDuringAuto(false);
@@ -194,11 +198,12 @@ public class Robot extends TimedRobot {
             mWrist.resetIfAtLimit();
 
             mAutoModeSelector.updateModeCreator();
+            mWantsDriverAuto = mAutoModeSelector.isDriveByCamera();
 
             Optional<AutoModeBase> autoMode = mAutoModeSelector.getAutoMode();
-            if (autoMode.isPresent() && autoMode.get() != mAutoModeExecuter.getAutoMode()) {
+            if (autoMode.isPresent() && autoMode.get() != mAutoModeExecutor.getAutoMode()) {
                 System.out.println("Set auto mode to: " + autoMode.get().getClass().toString());
-                mAutoModeExecuter.setAutoMode(autoMode.get());
+                mAutoModeExecutor.setAutoMode(autoMode.get());
                 System.gc();
             }
 
@@ -214,146 +219,153 @@ public class Robot extends TimedRobot {
 
         outputToSmartDashboard();
         try {
-
+            if (mWantsDriverAuto || mAutoModeExecutor.isInterrupted()) {
+                manualControl();
+            } else if (mControlBoard.getInterruptAuto()) {
+                mAutoModeExecutor.interrupt();
+            }
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
         }
     }
 
-    @Override
-    public void teleopPeriodic() {
-        SmartDashboard.putString("Match Cycle", "TELEOP");
+    private void manualControl() {
         double timestamp = Timer.getFPGATimestamp();
 
         double throttle = mControlBoard.getThrottle();
         double turn = mControlBoard.getTurn();
 
-        try {
-            mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
-            outputToSmartDashboard();
+        mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
 
-            final boolean cargo_preset = mCargoIntake.hasCargo();
-            double desired_height = Double.NaN;
-            double desired_angle = Double.NaN;
-            HatchIntakeStateMachine.WantedAction idle_hatch_intake = mHatchIntake.hasHatch() ? WantedAction.PREP_SCORE
-                    : (mCargoIntake.hasCargo() ? WantedAction.NONE : WantedAction.INTAKE);
-            if (!climb_mode) {
-                if (mControlBoard.goToGround()) {
-                    desired_height = SuperstructureConstants.kGroundHeight;
-                    desired_angle = SuperstructureConstants.kGroundAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToStow()) {
+        final boolean cargo_preset = mCargoIntake.hasCargo();
+        double desired_height = Double.NaN;
+        double desired_angle = Double.NaN;
+        HatchIntakeStateMachine.WantedAction idle_hatch_intake = mHatchIntake.hasHatch() ? WantedAction.PREP_SCORE
+                : (mCargoIntake.hasCargo() ? WantedAction.NONE : WantedAction.INTAKE);
+        if (!climb_mode) {
+            if (mControlBoard.goToGround()) {
+                desired_height = SuperstructureConstants.kGroundHeight;
+                desired_angle = SuperstructureConstants.kGroundAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToStow()) {
+                desired_height = SuperstructureConstants.kStowHeight;
+                desired_angle = SuperstructureConstants.kStowAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToShip()) {
+                desired_height = cargo_preset ? SuperstructureConstants.kCargoShipForwardsHeight
+                        : SuperstructureConstants.kHatchShipForwardsHeight;
+                desired_angle = cargo_preset ? SuperstructureConstants.kCargoShipForwardsAngle
+                        : SuperstructureConstants.kHatchForwardsAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToFirstLevel() && !mControlBoard.goToFirstLevelBackwards()) {
+                desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketFirstHeight
+                        : SuperstructureConstants.kHatchRocketFirstHeight;
+                desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketFirstAngle
+                        : SuperstructureConstants.kHatchForwardsAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToSecondLevel()) {
+                desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketSecondHeight
+                        : SuperstructureConstants.kHatchRocketSecondHeight;
+                desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketSecondAngle
+                        : SuperstructureConstants.kHatchForwardsAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToThirdLevel()) {
+                desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketThirdHeight
+                        : SuperstructureConstants.kHatchRocketThirdHeight;
+                desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketThirdAngle
+                        : SuperstructureConstants.kHatchForwardsAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.goToFirstLevelBackwards()/* && !cargo_preset */) {
+                desired_height = SuperstructureConstants.kHatchRocketBackwardsHeight;
+                desired_angle = SuperstructureConstants.kHatchBackwardsAngle;
+                mHatchIntake.setState(idle_hatch_intake);
+            } else if (mControlBoard.getScoreHatch()) {
+                mHatchIntake.setState(WantedAction.SCORE);
+            } else {
+                mHatchIntake.setState(WantedAction.NONE);
+            }
+
+            if (mControlBoard.getRunIntake()) {
+                mCargoIntake.setState(CargoIntake.WantedAction.INTAKE);
+            } else if (mControlBoard.getRunOuttake()) {
+                mCargoIntake.setState(CargoIntake.WantedAction.OUTTAKE);
+            } else {
+                mCargoIntake.setState(CargoIntake.WantedAction.NONE);
+            }
+
+            if (mCargoIntake.hasCargo() && !had_cargo_ && !mControlBoard.getRunOuttake()) {
+                if (mElevator.getInchesOffGround() < 5 && mWrist.getAngle() < 5) {
                     desired_height = SuperstructureConstants.kStowHeight;
                     desired_angle = SuperstructureConstants.kStowAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToShip()) {
-                    desired_height = cargo_preset ? SuperstructureConstants.kCargoShipForwardsHeight
-                            : SuperstructureConstants.kHatchShipForwardsHeight;
-                    desired_angle = cargo_preset ? SuperstructureConstants.kCargoShipForwardsAngle
-                            : SuperstructureConstants.kHatchForwardsAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToFirstLevel() && !mControlBoard.goToFirstLevelBackwards()) {
-                    desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketFirstHeight
-                            : SuperstructureConstants.kHatchRocketFirstHeight;
-                    desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketFirstAngle
-                            : SuperstructureConstants.kHatchForwardsAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToSecondLevel()) {
-                    desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketSecondHeight
-                            : SuperstructureConstants.kHatchRocketSecondHeight;
-                    desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketSecondAngle
-                            : SuperstructureConstants.kHatchForwardsAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToThirdLevel()) {
-                    desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketThirdHeight
-                            : SuperstructureConstants.kHatchRocketThirdHeight;
-                    desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketThirdAngle
-                            : SuperstructureConstants.kHatchForwardsAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.goToFirstLevelBackwards()/* && !cargo_preset */) {
-                    desired_height = SuperstructureConstants.kHatchRocketBackwardsHeight;
-                    desired_angle = SuperstructureConstants.kHatchBackwardsAngle;
-                    mHatchIntake.setState(idle_hatch_intake);
-                } else if (mControlBoard.getScoreHatch()) {
-                    mHatchIntake.setState(WantedAction.SCORE);
-                } else {
-                    mHatchIntake.setState(WantedAction.NONE);
-                }
-
-                if (mControlBoard.getRunIntake()) {
-                    mCargoIntake.setState(CargoIntake.WantedAction.INTAKE);
-                } else if (mControlBoard.getRunOuttake()) {
-                    mCargoIntake.setState(CargoIntake.WantedAction.OUTTAKE);
-                } else {
-                    mCargoIntake.setState(CargoIntake.WantedAction.NONE);
-                }
-
-                if (mCargoIntake.hasCargo() && !had_cargo_ && !mControlBoard.getRunOuttake()) {
-                    if (mElevator.getInchesOffGround() < 5 && mWrist.getAngle() < 5) {
-                        desired_height = SuperstructureConstants.kStowHeight;
-                        desired_angle = SuperstructureConstants.kStowAngle;
-                    }
-                }
-            } else {
-                mCargoIntake.forceIntakeIn();
-                mCargoIntake.setState(CargoIntake.WantedAction.NONE);
-
-                if (mControlBoard.dropCrawlers()) {
-                    System.out.println("Attempting DROP");
-                    desired_height = SuperstructureConstants.kCrawlerHeight;
-                    desired_angle = 0;
-                    mClimber.setState(Climber.WantedAction.DROP);
-                }
-
-                if (mElevator.getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 10 && mControlBoard.Crawl()) {
-                    System.out.println("Attempting CRAWL");
-                    desired_height = 0.0;
-                    desired_angle = SuperstructureConstants.kBustDownAngle;
-                    mClimber.setState(Climber.WantedAction.CRAWL);
-                }
-                if (mControlBoard.finishClimb()) {
-                    System.out.println("Climb done");
-                    desired_angle = SuperstructureConstants.kBustDownAngle;
-                    desired_height = SuperstructureConstants.kBustDown;
-                    mClimber.setState(Climber.WantedAction.DONE);
                 }
             }
+        } else {
+            mCargoIntake.forceIntakeIn();
+            mCargoIntake.setState(CargoIntake.WantedAction.NONE);
 
-            if (Double.isNaN(desired_angle) && Double.isNaN(desired_height)) {
-                mSuperstructure.setWantedAction(SuperstructureStateMachine.WantedAction.IDLE);
-            } else if (Double.isNaN(desired_angle)) {
-                mSuperstructure.setDesiredHeight(desired_height);
-            } else if (Double.isNaN(desired_height)) {
-                mSuperstructure.setDesiredAngle(desired_angle);
-            } else if (!Double.isNaN(desired_angle) && !Double.isNaN(desired_height)) {
-                mSuperstructure.setDesiredAngle(desired_angle);
-                mSuperstructure.setDesiredHeight(desired_height);
+            if (mControlBoard.dropCrawlers()) {
+                System.out.println("Attempting DROP");
+                desired_height = SuperstructureConstants.kCrawlerHeight;
+                desired_angle = 0;
+                mClimber.setState(Climber.WantedAction.DROP);
             }
 
-            had_cargo_ = mCargoIntake.hasCargo();
-
-            if (mControlBoard.climbMode()) {
-                climb_mode = true;
-                System.out.println("climb mode");
-                desired_height = 0;
+            if (mElevator.getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 10 && mControlBoard.Crawl()) {
+                System.out.println("Attempting CRAWL");
+                desired_height = 0.0;
+                desired_angle = SuperstructureConstants.kBustDownAngle;
+                mClimber.setState(Climber.WantedAction.CRAWL);
             }
-
-
-
-            double elevator_jog = mControlBoard.getJogElevatorThrottle();
-            if (Math.abs(elevator_jog) > Constants.kJoystickJogThreshold) {
-                elevator_jog = (elevator_jog - Math.signum(elevator_jog) * Constants.kJoystickJogThreshold)
-                        / (1.0 - Constants.kJoystickJogThreshold);
-                mSuperstructure.setElevatorJog(elevator_jog * SuperstructureConstants.kElevatorJogThrottle);
+            if (mControlBoard.finishClimb()) {
+                System.out.println("Climb done");
+                desired_angle = SuperstructureConstants.kBustDownAngle;
+                desired_height = SuperstructureConstants.kBustDown;
+                mClimber.setState(Climber.WantedAction.DONE);
             }
+        }
 
-            double wrist_jog = mControlBoard.getJogWristThrottle();
-            if (Math.abs(wrist_jog) > Constants.kJoystickJogThreshold) {
-                wrist_jog = (wrist_jog - Math.signum(wrist_jog) * Constants.kJoystickJogThreshold)
-                        / (1.0 - Constants.kJoystickJogThreshold);
-                mSuperstructure.setWristJog(wrist_jog * SuperstructureConstants.kWristJogThrottle);
-            }
+        if (Double.isNaN(desired_angle) && Double.isNaN(desired_height)) {
+            mSuperstructure.setWantedAction(SuperstructureStateMachine.WantedAction.IDLE);
+        } else if (Double.isNaN(desired_angle)) {
+            mSuperstructure.setDesiredHeight(desired_height);
+        } else if (Double.isNaN(desired_height)) {
+            mSuperstructure.setDesiredAngle(desired_angle);
+        } else if (!Double.isNaN(desired_angle) && !Double.isNaN(desired_height)) {
+            mSuperstructure.setDesiredAngle(desired_angle);
+            mSuperstructure.setDesiredHeight(desired_height);
+        }
+
+        had_cargo_ = mCargoIntake.hasCargo();
+
+        if (mControlBoard.climbMode()) {
+            climb_mode = true;
+            System.out.println("climb mode");
+            desired_height = 0;
+        }
+
+        double elevator_jog = mControlBoard.getJogElevatorThrottle();
+        if (Math.abs(elevator_jog) > Constants.kJoystickJogThreshold) {
+            elevator_jog = (elevator_jog - Math.signum(elevator_jog) * Constants.kJoystickJogThreshold)
+                    / (1.0 - Constants.kJoystickJogThreshold);
+            mSuperstructure.setElevatorJog(elevator_jog * SuperstructureConstants.kElevatorJogThrottle);
+        }
+
+        double wrist_jog = mControlBoard.getJogWristThrottle();
+        if (Math.abs(wrist_jog) > Constants.kJoystickJogThreshold) {
+            wrist_jog = (wrist_jog - Math.signum(wrist_jog) * Constants.kJoystickJogThreshold)
+                    / (1.0 - Constants.kJoystickJogThreshold);
+            mSuperstructure.setWristJog(wrist_jog * SuperstructureConstants.kWristJogThrottle);
+        }
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        SmartDashboard.putString("Match Cycle", "TELEOP");
+
+        try {
+            manualControl();
+            outputToSmartDashboard();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
