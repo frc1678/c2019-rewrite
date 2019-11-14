@@ -118,7 +118,7 @@ public class Climber extends Subsystem {
     @Override
     public void writePeriodicOutputs() {
         
-        if (Elevator.getInstance().getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 4) {
+        if (Elevator.getInstance().getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 2) {
             mDropSolenoid.set(mPeriodicIO.drop_solenoid);
         } else {
             mDropSolenoid.set(false);

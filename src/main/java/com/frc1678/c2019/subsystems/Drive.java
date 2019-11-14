@@ -195,7 +195,7 @@ public class Drive extends Subsystem {
     public synchronized void updateVisionPID(boolean firstRun) {
        
         if (firstRun) {
-          throttlePID.setGoal(25.0);
+          throttlePID.setGoal(24.0);
           throttlePID2.setGoal(14.0);
           steeringPID.setGoal(0.0);
 

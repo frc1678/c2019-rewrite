@@ -5,7 +5,7 @@ public class SuperstructureConstants {
     public static double kWristMaxAngle = 180.0;
 
     public static double kElevatorMinHeight = 0.0;
-    public static double kElevatorMaxHeight = 71.0;
+    public static double kElevatorMaxHeight = 69.0;
 
     // Passthru
     public static double kWristSafeForwardsAngle = 75.0;
@@ -24,26 +24,26 @@ public class SuperstructureConstants {
     
 
     // elevator constants
-    public static double kHatchShipForwardsHeight = 5;
-    public static double kHatchShipBackwardsHeight = 5;
+    public static double kHatchShipForwardsHeight = 5 - 1.0;
+    public static double kHatchShipBackwardsHeight = 5 - 1.5;
     public static double kHatchRocketFirstHeight = 0.1;
-    public static double kHatchRocketBackwardsHeight = 5;
-    public static double kHatchRocketSecondHeight = 40;
-    public static double kHatchRocketThirdHeight = 70;
-    public static double kHatchLoadingStationHeight = 3.5;
-    public static double kCargoShipForwardsHeight = 43;
-    public static double kCargoShipBackwardsHeight = 5;
-    public static double kCargoRocketFirstHeight = 3.5;
-    public static double kCargoRocketBackwardsHeight = 5;
-    public static double kCargoRocketSecondHeight = 36.5;
-    public static double kCargoRocketThirdHeight = 68.5;
+    public static double kHatchRocketBackwardsHeight = 5 - 1.0;
+    public static double kHatchRocketSecondHeight = 40 - 1.5;
+    public static double kHatchRocketThirdHeight = 70 - 1.5;
+    public static double kHatchLoadingStationHeight = 3.5 - 1.0;
+    public static double kCargoShipForwardsHeight = 43 - 1.5;
+    public static double kCargoShipBackwardsHeight = 5 - 1.0;
+    public static double kCargoRocketFirstHeight = 3.5 - 1.0;
+    public static double kCargoRocketBackwardsHeight = 5 - 1.0;
+    public static double kCargoRocketSecondHeight = 36.5 - 1.5;
+    public static double kCargoRocketThirdHeight = 68.5 - 1.5;
     public static double kGroundHeight = 0.;
-    public static double kHandoffHeight = 10;
+    public static double kHandoffHeight = 10 - 1.25;
     public static double kSpitHeight = 0.;
     public static double kStowHeight = 0.;
-    public static double kKissHeight = 55;
+    public static double kKissHeight = 55 - 1.0;
     public static double kClimbHeight = 2.0;
-    public static double kCrawlerHeight = 63;
+    public static double kCrawlerHeight = 65 - 1.5;
     public static double kBustDown = 12.3;
     public static double kElevatorPassThroughHeight = 2;
     public static double kElevatorHandoffTolerance = 2e-3;
@@ -66,7 +66,8 @@ public class SuperstructureConstants {
     public static double kCargoShipBackwardsAngle = 170;
     public static double kGroundAngle = 0.0;
     public static double kHandoffAngle = 170;
-    public static double kStowAngle = 70;
+    public static double kStowAngle = 75;
+    public static double kDefStowAngle = 100;
     public static double kBustDownAngle = 20;
     public static double kWristHandoffTolerance = 3.0;
     public static double kWristRezeroCurrentThreshold = 10;  // tune

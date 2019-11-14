@@ -258,7 +258,7 @@ public class Robot extends TimedRobot {
             } else if (mControlBoard.goToStow()) {
                 desired_height = SuperstructureConstants.kStowHeight;
                 desired_angle = SuperstructureConstants.kStowAngle;
-                mHatchIntake.setState(idle_hatch_intake);
+                mHatchIntake.setState(WantedAction.HOLD);
             } else if (mControlBoard.goToShip()) {
                 desired_height = cargo_preset ? SuperstructureConstants.kCargoShipForwardsHeight
                         : SuperstructureConstants.kHatchShipForwardsHeight;

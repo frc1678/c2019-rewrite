@@ -54,12 +54,12 @@ public class Wrist extends Subsystem {
         if (errorCode != ErrorCode.OK)
             DriverStation.reportError("Could not detect wrist encoder: " + errorCode, false);
 
-        errorCode = mMaster.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector,
-                LimitSwitchNormal.NormallyOpen, Constants.kLongCANTimeoutMs);
+        errorCode = mMaster.configForwardLimitSwitchSource(LimitSwitchSource.Deactivated,
+                LimitSwitchNormal.Disabled, Constants.kLongCANTimeoutMs);
         if (errorCode != ErrorCode.OK)
             DriverStation.reportError("Could not set forward limit switch wrist: " + errorCode, false);
-        errorCode = mMaster.configReverseLimitSwitchSource(RemoteLimitSwitchSource.RemoteCANifier,
-                LimitSwitchNormal.NormallyOpen, mCanifier.getDeviceId(), Constants.kLongCANTimeoutMs);
+        errorCode = mMaster.configReverseLimitSwitchSource(RemoteLimitSwitchSource.Deactivated,
+                LimitSwitchNormal.Disabled, Constants.kLongCANTimeoutMs);
         if (errorCode != ErrorCode.OK)
             DriverStation.reportError("Could not set reverse limit switch wrist: " + errorCode, false);
 
@@ -195,6 +195,9 @@ public class Wrist extends Subsystem {
         SmartDashboard.putNumber("Wrist periodic demand", mPeriodicIO.demand);
         SmartDashboard.putBoolean("LIMR", mPeriodicIO.limit_switch);
 
+        SmartDashboard.putBoolean("Zero wrist", mHasBeenZeroed);
+
+
         SmartDashboard.putNumber("Wrist RPM", getRPM());
         SmartDashboard.putNumber("Wrist Power %", mPeriodicIO.output_percent);
         SmartDashboard.putBoolean("Wrist Limit Switch", mPeriodicIO.limit_switch);
@@ -282,7 +285,7 @@ public class Wrist extends Subsystem {
     }
 
     public synchronized boolean resetIfAtLimit() {
-        if (mCanifier.getLimR()) {
+        if (mCanifier.getLimR() && !mHasBeenZeroed) {
             zeroSensors();
             return true;
         }
@@ -426,22 +429,7 @@ public class Wrist extends Subsystem {
 
         if (getAngle() > Constants.kWristEpsilon
                 || sensorUnitsToDegrees(mPeriodicIO.active_trajectory_position) > Constants.kWristEpsilon) {
-            double wristGravityComponent = Math.cos(Math.toRadians(getAngle()))
-                    * /*
-                       * (mIntake.hasCube() ? Constants .kWristKfMultiplierWithCube :
-                       */ Constants.kWristKfMultiplierEmpty;// );
-            double elevatorAccelerationComponent = mElevator.getActiveTrajectoryAccelG()
-                    * Constants.kWristElevatorAccelerationMultiplier;
-            double wristAccelerationComponent = mPeriodicIO.active_trajectory_acceleration_rad_per_s2
-                    * (/* mIntake.hasCube() ? Constants.kWristKaWithCube : */ Constants.kWristKaWithoutCube);
-            mPeriodicIO.feedforward = (elevatorAccelerationComponent) * wristGravityComponent
-                    + wristAccelerationComponent;
-        } else {
-            if (getSetpoint() < Util.kEpsilon) {
-                mPeriodicIO.feedforward = -0.1;
-            } else {
-                mPeriodicIO.feedforward = 0.0;
-            }
+                mPeriodicIO.feedforward = 1.53 * Math.cos(Math.toRadians(getAngle()));
         }
         if (mCSVWriter != null) {
             mCSVWriter.add(mPeriodicIO);
@@ -455,18 +443,15 @@ public class Wrist extends Subsystem {
         }
 
         if (mDesiredState == SystemState.MOTION_PROFILING) {
-            if ((getSetpoint() < 5) && (getAngle() < 5 || mPeriodicIO.limit_switch)) {
-                mMaster.set(ControlMode.PercentOutput, 0.0);
-            } else {
+
                 mMaster.set(ControlMode.MotionMagic, mPeriodicIO.demand, DemandType.ArbitraryFeedForward,
-                    mPeriodicIO.feedforward);
-            }
+                    0.0 / 12.0);
         } else if (mDesiredState == SystemState.POSITION_PID) {
             mMaster.set(ControlMode.Position, mPeriodicIO.demand, DemandType.ArbitraryFeedForward,
-                    mPeriodicIO.feedforward);
+                    mPeriodicIO.feedforward / 12.0);
         } else {
             mMaster.set(ControlMode.PercentOutput, mPeriodicIO.demand, DemandType.ArbitraryFeedForward,
-                    mPeriodicIO.feedforward);
+                    mPeriodicIO.feedforward / 12.0);
         }
     }
 
