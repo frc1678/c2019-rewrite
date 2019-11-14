@@ -91,8 +91,8 @@ public class Drive extends Subsystem {
         if (sensorPresent != ErrorCode.OK) {
             DriverStation.reportError("Could not detect " + (left ? "left" : "right") + " encoder: " + sensorPresent, false);
         }
-        talon.setInverted(!left);
-        talon.setSensorPhase(true);
+        talon.setInverted(left);
+        talon.setSensorPhase(false);
         talon.enableVoltageCompensation(true);
         talon.configVoltageCompSaturation(12.0, Constants.kLongCANTimeoutMs);
         talon.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_50Ms, Constants.kLongCANTimeoutMs);
@@ -110,22 +110,22 @@ public class Drive extends Subsystem {
 
         mLeftSlaveA = TalonSRXFactory.createPermanentSlaveTalon(Constants.kLeftDriveSlaveAId,
                 Constants.kLeftDriveMasterId);
-        mLeftSlaveA.setInverted(false);
+        mLeftSlaveA.setInverted(true);
 
         mLeftSlaveB = TalonSRXFactory.createPermanentSlaveTalon(Constants.kLeftDriveSlaveBId,
                 Constants.kLeftDriveMasterId);
-        mLeftSlaveB.setInverted(false);
+        mLeftSlaveB.setInverted(true);
 
         mRightMaster = TalonSRXFactory.createDefaultTalon(Constants.kRightDriveMasterId);
         configureMaster(mRightMaster, false);
 
         mRightSlaveA = TalonSRXFactory.createPermanentSlaveTalon(Constants.kRightDriveSlaveAId,
                 Constants.kRightDriveMasterId);
-        mRightSlaveA.setInverted(true);
+        mRightSlaveA.setInverted(false);
 
         mRightSlaveB = TalonSRXFactory.createPermanentSlaveTalon(Constants.kRightDriveSlaveBId,
                 Constants.kRightDriveMasterId);
-        mRightSlaveB.setInverted(true);
+        mRightSlaveB.setInverted(false);
 
         reloadGains();
 

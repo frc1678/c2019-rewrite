@@ -15,7 +15,8 @@ public class AutoModeSelector {
     enum DesiredMode {
         DO_NOTHING,
         ROCKET_HATCH,
-        CHARACTERIZE_DRIVE,
+        CHARACTERIZE_DRIVE_TURN,
+        CHARACTERIZE_DRIVE_STRAIGHT,
     }
 
     private DesiredMode mCachedDesiredMode = null;
@@ -30,7 +31,8 @@ public class AutoModeSelector {
         mModeChooser = new SendableChooser<>();
         mModeChooser.setDefaultOption("Do Nothing", DesiredMode.DO_NOTHING);
         mModeChooser.addOption("Rocket Hatch", DesiredMode.ROCKET_HATCH);
-        mModeChooser.addOption("Characterize Drive", DesiredMode.CHARACTERIZE_DRIVE);
+        mModeChooser.addOption("Characterize Drive Turn", DesiredMode.CHARACTERIZE_DRIVE_TURN);
+        mModeChooser.addOption("Characterize Drive Straight", DesiredMode.CHARACTERIZE_DRIVE_STRAIGHT);
         SmartDashboard.putData("Auto mode", mModeChooser);
 
         mStartPositionChooser = new SendableChooser<>();
@@ -55,8 +57,10 @@ public class AutoModeSelector {
         switch (mode) {
             case DO_NOTHING:
                 return Optional.of(new DoNothingMode());
-            case CHARACTERIZE_DRIVE:
+            case CHARACTERIZE_DRIVE_TURN:
                 return Optional.of(new CharacterizeDrivebaseMode(false, true));
+            case CHARACTERIZE_DRIVE_STRAIGHT:
+                return Optional.of(new CharacterizeDrivebaseMode(false, false));
             case ROCKET_HATCH:
                 return Optional.of(new RocketHatchMode(startOnLeft));
             default:
