@@ -3,7 +3,6 @@ package com.frc1678.c2019.subsystems;
 import com.ctre.phoenix.ParamEnum;
 import com.ctre.phoenix.motorcontrol.*;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-import com.ctre.phoenix.motorcontrol.can.VictorSPX;
 import com.frc1678.c2019.Constants;
 import com.frc1678.c2019.loops.ILooper;
 import com.frc1678.c2019.loops.Loop;
@@ -28,8 +27,7 @@ public class Elevator extends Subsystem {
     private static final int kForwardSoftLimit = (int) (71 / kEncoderTicksPerInch); // Encoder ticks.
     private static Elevator mInstance = null;
     //private Intake mIntake = Intake.getInstance();
-    private final TalonSRX mMaster;
-    private final VictorSPX mRightSlave, mLeftSlaveA, mLeftSlaveB;
+    private final TalonSRX mMaster, mRightSlave, mLeftSlaveA, mLeftSlaveB;
     private final Solenoid mShifter;
     private PeriodicIO mPeriodicIO = new PeriodicIO();
     private ElevatorControlState mElevatorControlState = ElevatorControlState.OPEN_LOOP;
@@ -195,16 +193,16 @@ public class Elevator extends Subsystem {
         mMaster.setInverted(false);
         mMaster.setSensorPhase(false);
 
-        mRightSlave = new VictorSPX(Constants.kElevatorRightSlaveId);
-        mRightSlave.follow(mMaster);
+        mRightSlave = TalonSRXFactory.createPermanentSlaveTalon(Constants.kElevatorRightSlaveId,
+                Constants.kElevatorMasterId);
         mRightSlave.setInverted(false);
 
-        mLeftSlaveA = new VictorSPX(Constants.kElevatorLeftSlaveAId);
-        mLeftSlaveA.follow(mMaster);
+        mLeftSlaveA = TalonSRXFactory.createPermanentSlaveTalon(Constants.kElevatorLeftSlaveAId,
+                Constants.kElevatorMasterId);
         mLeftSlaveA.setInverted(false);
 
-        mLeftSlaveB = new VictorSPX(Constants.kElevatorLeftSlaveBId);
-        mLeftSlaveB.follow(mMaster);
+        mLeftSlaveB = TalonSRXFactory.createPermanentSlaveTalon(Constants.kElevatorLeftSlaveBId,
+                Constants.kElevatorMasterId);
         mLeftSlaveB.setInverted(false);
 
         mShifter = Constants.makeSolenoidForId(Constants.kElevatorShifterSolenoidId);
@@ -410,10 +408,10 @@ public class Elevator extends Subsystem {
                 TalonSRXChecker.CheckTalons(this,
                         new ArrayList<TalonSRXChecker.TalonSRXConfig>() {
                             {
-                                /* add(new TalonSRXChecker.TalonSRXConfig("left_slave_a",
+                                add(new TalonSRXChecker.TalonSRXConfig("left_slave_a",
                                         mLeftSlaveA));
                                 add(new TalonSRXChecker.TalonSRXConfig("left_slave_b",
-                                        mLeftSlaveB)); */
+                                        mLeftSlaveB));
                             }
                         }, new TalonSRXChecker.CheckerConfig() {
                             {
@@ -431,7 +429,7 @@ public class Elevator extends Subsystem {
                         new ArrayList<TalonSRXChecker.TalonSRXConfig>() {
                             {
                                 add(new TalonSRXChecker.TalonSRXConfig("master", mMaster));
-                                // add(new TalonSRXChecker.TalonSRXConfig("right_slave", mRightSlave));
+                                add(new TalonSRXChecker.TalonSRXConfig("right_slave", mRightSlave));
                             }
                         }, new TalonSRXChecker.CheckerConfig() {
                             {
