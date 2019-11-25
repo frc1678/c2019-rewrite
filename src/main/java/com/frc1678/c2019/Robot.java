@@ -11,6 +11,7 @@ import com.frc1678.c2019.auto.AutoModeExecutor;
 import com.frc1678.c2019.auto.modes.AutoModeBase;
 import com.frc1678.c2019.loops.Looper;
 import com.frc1678.c2019.paths.TrajectoryGenerator;
+import com.frc1678.c2019.teleop.Teleop;
 import com.frc1678.c2019.statemachines.*;
 import com.frc1678.c2019.statemachines.HatchIntakeStateMachine.WantedAction;
 import com.frc1678.c2019.states.SuperstructureConstants;
@@ -18,7 +19,6 @@ import com.frc1678.c2019.subsystems.*;
 import com.frc1678.c2019.subsystems.RobotStateEstimator;
 import com.team254.lib.geometry.Pose2d;
 import com.team254.lib.util.*;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -31,7 +31,7 @@ public class Robot extends TimedRobot {
     private Looper mEnabledLooper = new Looper();
     private Looper mDisabledLooper = new Looper();
     private CheesyDriveHelper mCheesyDriveHelper = new CheesyDriveHelper();
-    private IControlBoard mControlBoard = ControlBoard.getInstance();
+    private Teleop mTeleop = Teleop.getInstance();
     private TrajectoryGenerator mTrajectoryGenerator = TrajectoryGenerator.getInstance();
     private AutoModeSelector mAutoModeSelector = new AutoModeSelector();
     private boolean had_cargo_ = false;
@@ -221,7 +221,7 @@ public class Robot extends TimedRobot {
         try {
             if (mWantsDriverAuto || mAutoModeExecutor.isInterrupted()) {
                 manualControl();
-            } else if (mControlBoard.getInterruptAuto()) {
+            } else if (mTeleop.getInterruptAuto()) {
                 mAutoModeExecutor.interrupt();
             }
         } catch (Throwable t) {
@@ -232,15 +232,15 @@ public class Robot extends TimedRobot {
 
     private void manualControl() {
         double timestamp = Timer.getFPGATimestamp();
-        boolean vision = mControlBoard.getStartVision();
+        boolean vision = mTeleop.getStartVision();
 
-        double throttle = mControlBoard.getThrottle();
-        double turn = mControlBoard.getTurn();
+        double throttle = mTeleop.getThrottle();
+        double turn = mTeleop.getTurn();
 
         if (vision && mLLManager.getHasTarget() && mLLManager.getLimelightOK()) {
-            mDrive.updateVisionPID(mControlBoard.getStartVisionPressed());
+            mDrive.updateVisionPID(mTeleop.getStartVisionPressed());
         } else {
-            mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
+            mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mTeleop.getQuickTurn(), false));
         }
        
         outputToSmartDashboard();
@@ -251,57 +251,57 @@ public class Robot extends TimedRobot {
         HatchIntakeStateMachine.WantedAction idle_hatch_intake = mHatchIntake.hasHatch() ? WantedAction.PREP_SCORE
                 : (mCargoIntake.hasCargo() ? WantedAction.NONE : WantedAction.INTAKE);
         if (!climb_mode) {
-            if (mControlBoard.goToGround()) {
+            if (mTeleop.goToGround()) {
                 desired_height = SuperstructureConstants.kGroundHeight;
                 desired_angle = SuperstructureConstants.kGroundAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.goToStow()) {
+            } else if (mTeleop.goToStow()) {
                 desired_height = SuperstructureConstants.kStowHeight;
                 desired_angle = SuperstructureConstants.kStowAngle;
                 mHatchIntake.setState(WantedAction.HOLD);
-            } else if (mControlBoard.goToShip()) {
+            } else if (mTeleop.goToShip()) {
                 desired_height = cargo_preset ? SuperstructureConstants.kCargoShipForwardsHeight
                         : SuperstructureConstants.kHatchShipForwardsHeight;
                 desired_angle = cargo_preset ? SuperstructureConstants.kCargoShipForwardsAngle
                         : SuperstructureConstants.kHatchForwardsAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.goToFirstLevel() && !mControlBoard.goToFirstLevelBackwards()) {
+            } else if (mTeleop.goToFirstLevel() && !mTeleop.goToFirstLevelBackwards()) {
                 desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketFirstHeight
                         : SuperstructureConstants.kHatchRocketFirstHeight;
                 desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketFirstAngle
                         : SuperstructureConstants.kHatchForwardsAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.goToSecondLevel()) {
+            } else if (mTeleop.goToSecondLevel()) {
                 desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketSecondHeight
                         : SuperstructureConstants.kHatchRocketSecondHeight;
                 desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketSecondAngle
                         : SuperstructureConstants.kHatchForwardsAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.goToThirdLevel()) {
+            } else if (mTeleop.goToThirdLevel()) {
                 desired_height = cargo_preset ? SuperstructureConstants.kCargoRocketThirdHeight
                         : SuperstructureConstants.kHatchRocketThirdHeight;
                 desired_angle = cargo_preset ? SuperstructureConstants.kCargoRocketThirdAngle
                         : SuperstructureConstants.kHatchForwardsAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.goToFirstLevelBackwards()/* && !cargo_preset */) {
+            } else if (mTeleop.goToFirstLevelBackwards()/* && !cargo_preset */) {
                 desired_height = SuperstructureConstants.kHatchRocketBackwardsHeight;
                 desired_angle = SuperstructureConstants.kHatchBackwardsAngle;
                 mHatchIntake.setState(idle_hatch_intake);
-            } else if (mControlBoard.getScoreHatch()) {
+            } else if (mTeleop.getScoreHatch()) {
                 mHatchIntake.setState(WantedAction.SCORE);
             } else {
                 mHatchIntake.setState(WantedAction.NONE);
             }
 
-            if (mControlBoard.getRunIntake()) {
+            if (mTeleop.getRunIntake()) {
                 mCargoIntake.setState(CargoIntake.WantedAction.INTAKE);
-            } else if (mControlBoard.getRunOuttake()) {
+            } else if (mTeleop.getRunOuttake()) {
                 mCargoIntake.setState(CargoIntake.WantedAction.OUTTAKE);
             } else {
                 mCargoIntake.setState(CargoIntake.WantedAction.NONE);
             }
 
-            if (mCargoIntake.hasCargo() && !had_cargo_ && !mControlBoard.getRunOuttake()) {
+            if (mCargoIntake.hasCargo() && !had_cargo_ && !mTeleop.getRunOuttake()) {
                 if (mElevator.getInchesOffGround() < 5 && mWrist.getAngle() < 5) {
                     desired_height = SuperstructureConstants.kStowHeight;
                     desired_angle = SuperstructureConstants.kStowAngle;
@@ -312,20 +312,20 @@ public class Robot extends TimedRobot {
             mHatchIntake.setState(HatchIntakeStateMachine.WantedAction.NONE);
             mCargoIntake.setState(CargoIntake.WantedAction.NONE);
 
-            if (mControlBoard.dropCrawlers()) {
+            if (mTeleop.dropCrawlers()) {
                 System.out.println("Attempting DROP");
                 desired_height = SuperstructureConstants.kCrawlerHeight;
                 desired_angle = 0;
                 mClimber.setState(Climber.WantedAction.DROP);
             }
 
-            if (mElevator.getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 10 && mControlBoard.Crawl()) {
+            if (mElevator.getInchesOffGround() >= SuperstructureConstants.kCrawlerHeight - 10 && mTeleop.Crawl()) {
                 System.out.println("Attempting CRAWL");
                 desired_height = 0.0;
                 desired_angle = SuperstructureConstants.kBustDownAngle;
                 mClimber.setState(Climber.WantedAction.CRAWL);
             }
-            if (mControlBoard.finishClimb()) {
+            if (mTeleop.finishClimb()) {
                 System.out.println("Climb done");
                 desired_angle = SuperstructureConstants.kBustDownAngle;
                 desired_height = SuperstructureConstants.kBustDown;
@@ -346,20 +346,20 @@ public class Robot extends TimedRobot {
 
         had_cargo_ = mCargoIntake.hasCargo();
 
-        if (mControlBoard.climbMode()) {
+        if (mTeleop.climbMode()) {
             climb_mode = true;
             System.out.println("climb mode");
             desired_height = 0;
         }
 
-        double elevator_jog = mControlBoard.getJogElevatorThrottle();
+        double elevator_jog = mTeleop.getJogElevatorThrottle();
         if (Math.abs(elevator_jog) > Constants.kJoystickJogThreshold) {
             elevator_jog = (elevator_jog - Math.signum(elevator_jog) * Constants.kJoystickJogThreshold)
                     / (1.0 - Constants.kJoystickJogThreshold);
             mSuperstructure.setElevatorJog(elevator_jog * SuperstructureConstants.kElevatorJogThrottle);
         }
 
-        double wrist_jog = mControlBoard.getJogWristThrottle();
+        double wrist_jog = mTeleop.getJogWristThrottle();
         if (Math.abs(wrist_jog) > Constants.kJoystickJogThreshold) {
             wrist_jog = (wrist_jog - Math.signum(wrist_jog) * Constants.kJoystickJogThreshold)
                     / (1.0 - Constants.kJoystickJogThreshold);
