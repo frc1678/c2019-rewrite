@@ -215,19 +215,19 @@ public class Drive extends Subsystem {
             mRightMaster.configNeutralDeadband(0.04, 0);
         }
 
-        double throttle = -throttlePID.update(Timer.getFPGATimestamp(), mLLManager.getTargetDist());
-        double throttle2 = -throttlePID2.update(Timer.getFPGATimestamp(), mLLManager.getTargetDist());
+        double throttle = throttlePID.update(Timer.getFPGATimestamp(), mLLManager.getTargetDist());
+        double throttle2 = throttlePID2.update(Timer.getFPGATimestamp(), mLLManager.getTargetDist());
         double steering = steeringPID.update(Timer.getFPGATimestamp(), mLLManager.getXOffset());
 
         double leftVoltage;
         double rightVoltage;
 
         if (mLLManager.getActiveLimelight() == LimelightManager.ActiveLimelight.TOP || Elevator.getInstance().getInchesOffGround() < SuperstructureConstants.kSwitchLimelightHeight) {
-            leftVoltage = (throttle - steering) / 12.0;
-            rightVoltage = (throttle + steering) / 12.0;
+            leftVoltage = (throttle + steering) / 12.0;
+            rightVoltage = (throttle - steering) / 12.0;
           } else {
-            leftVoltage = (throttle2 - steering) / 12.0;
-            rightVoltage = (throttle2 + steering) / 12.0;
+            leftVoltage = (throttle2 + steering) / 12.0;
+            rightVoltage = (throttle2 - steering) / 12.0;
   
           }
         
