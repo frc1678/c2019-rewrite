@@ -24,7 +24,7 @@ public class Constants {
     // Tuned dynamics
     public static final double kRobotLinearInertia = 60.0;  // kg TODO tune
     public static final double kRobotAngularInertia = 12.0;  // kg m^2 TODO tune
-    public static final double kRobotAngularDrag = 0.0;  // N*m / (rad/sec) TODO tune
+    public static final double kRobotAngularDrag = 12.0;  // N*m / (rad/sec) TODO tune
     public static final double kDriveVIntercept = 0.44;  // V
     public static final double kDriveKv = 0.129;  // V per rad/s
     public static final double kDriveKa = 0.012;  // V per rad/s^2
@@ -42,7 +42,7 @@ public class Constants {
     public static final double kDriveVoltageRampRate = 0.0;
 
     public static final double kHighGearVoltageScale = 1.0;
-    public static final double kLowGearVoltageScale = 0.66;
+    public static final double kLowGearVoltageScale = 0.6;
     // PID gains for elevator velocity loop (HIGH GEAR)
     // Units: setpoint, error, and output are in native units per 100ms.
     // Elevator encoder is CTRE mag encoder which is 4096 native units per revolution.

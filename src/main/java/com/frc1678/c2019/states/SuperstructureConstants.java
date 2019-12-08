@@ -20,7 +20,7 @@ public class SuperstructureConstants {
     public final static double kElevatorJogThrottle = 60.0 / 50.0;
 
     // This is in degrees / ~20ms
-    public final static double kWristJogThrottle = 5.0 / 20.0;
+    public final static double kWristJogThrottle = 1.2;
     
 
     // elevator constants
