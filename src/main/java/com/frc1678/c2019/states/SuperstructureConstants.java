@@ -24,24 +24,24 @@ public class SuperstructureConstants {
     
 
     // elevator constants
-    public static double kHatchShipForwardsHeight = 5 - 1.0;
-    public static double kHatchShipBackwardsHeight = 5 - 1.5;
+    public static double kHatchShipForwardsHeight = 5;
+    public static double kHatchShipBackwardsHeight = 5;
     public static double kHatchRocketFirstHeight = 0.1;
-    public static double kHatchRocketBackwardsHeight = 5 - 1.0;
-    public static double kHatchRocketSecondHeight = 40 - 1.5;
-    public static double kHatchRocketThirdHeight = 70 - 1.5;
-    public static double kHatchLoadingStationHeight = 3.5 - 1.0;
-    public static double kCargoShipForwardsHeight = 43 - 1.5;
-    public static double kCargoShipBackwardsHeight = 5 - 1.0;
-    public static double kCargoRocketFirstHeight = 3.5 - 1.0;
-    public static double kCargoRocketBackwardsHeight = 5 - 1.0;
-    public static double kCargoRocketSecondHeight = 36.5 - 1.5;
-    public static double kCargoRocketThirdHeight = 68.5 - 1.5;
+    public static double kHatchRocketBackwardsHeight = 5;
+    public static double kHatchRocketSecondHeight = 40;
+    public static double kHatchRocketThirdHeight = 70;
+    public static double kHatchLoadingStationHeight = 3.5;
+    public static double kCargoShipForwardsHeight = 43;
+    public static double kCargoShipBackwardsHeight = 5;
+    public static double kCargoRocketFirstHeight = 3.5;
+    public static double kCargoRocketBackwardsHeight = 5;
+    public static double kCargoRocketSecondHeight = 38.5;
+    public static double kCargoRocketThirdHeight = 70.5;
     public static double kGroundHeight = 0.;
-    public static double kHandoffHeight = 10 - 1.25;
+    public static double kHandoffHeight = 10;
     public static double kSpitHeight = 0.;
     public static double kStowHeight = 0.;
-    public static double kKissHeight = 55 - 1.0;
+    public static double kKissHeight = 55;
     public static double kClimbHeight = 2.0;
   
     public static double kCrawlerHeight = 65 - 1.5;

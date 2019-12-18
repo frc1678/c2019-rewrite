@@ -76,7 +76,7 @@ public class Infrastructure extends Subsystem {
                     boolean elevatorMoving = mSuperstructure.getSuperStructureState() ==
                             SuperstructureStateMachine.SystemState.MOVING_TO_POSITION;
                     boolean isIntaking = mIntake.getVoltage() == CargoIntake.kIntakeVoltage;
-                    if (elevatorMoving || mIsDuringAuto || isIntaking) {
+                    if (mIsDuringAuto) {
                         stopCompressor();
                     } else {
                         startCompressor();

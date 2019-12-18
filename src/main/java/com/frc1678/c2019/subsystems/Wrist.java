@@ -51,7 +51,7 @@ public class Wrist extends Subsystem {
         if (errorCode != ErrorCode.OK)
             DriverStation.reportError("Could not set wrist encoder!!!: " + errorCode, false);
 
-        errorCode = mMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative);
+        errorCode = mMaster.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, Constants.kLongCANTimeoutMs);
         if (errorCode != ErrorCode.OK)
             DriverStation.reportError("Could not detect wrist encoder: " + errorCode, false);
 
@@ -457,7 +457,7 @@ public class Wrist extends Subsystem {
         }
 
         if (mDesiredState == SystemState.MOTION_PROFILING) {
-                mMaster.set(ControlMode.MotionMagic, mPeriodicIO.demand);//, DemandType.ArbitraryFeedForward, mPeriodicIO.feedforward);
+                mMaster.set(ControlMode.MotionMagic, mPeriodicIO.demand, DemandType.ArbitraryFeedForward, mPeriodicIO.feedforward);
         } else if (mDesiredState == SystemState.POSITION_PID) {
             mMaster.set(ControlMode.Position, mPeriodicIO.demand, DemandType.ArbitraryFeedForward,
                     mPeriodicIO.feedforward / 12.0);

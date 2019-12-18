@@ -3,6 +3,7 @@ package com.frc1678.c2019;
 import com.team254.lib.geometry.Pose2d;
 import com.team254.lib.geometry.Rotation2d;
 import com.team254.lib.geometry.Twist2d;
+import com.team254.lib.util.DriveSignal;
 
 /**
  * Provides forward and inverse kinematics equations for the robot modeling the wheelbase as a differential drive (with
@@ -10,6 +11,8 @@ import com.team254.lib.geometry.Twist2d;
  */
 
 public class Kinematics {
+    private static final double kEpsilon = 1E-9;
+
     /**
      * Forward kinematics using only encoders, rotation is implicit (less accurate than below, but useful for predicting
      * motion)
@@ -37,5 +40,16 @@ public class Kinematics {
     public static Pose2d integrateForwardKinematics(Pose2d current_pose,
                                                     Twist2d forward_kinematics) {
         return current_pose.transformBy(Pose2d.exp(forward_kinematics));
+    }
+
+    /**
+     * Uses inverse kinematics to convert a Twist2d into left and right wheel velocities
+     */
+    public static DriveSignal inverseKinematics(Twist2d velocity) {
+        if (Math.abs(velocity.dtheta) < kEpsilon) {
+            return new DriveSignal(velocity.dx, velocity.dx);
+        }
+        double delta_v = Constants.kDriveWheelTrackWidthInches * velocity.dtheta / (2 * Constants.kTrackScrubFactor);
+        return new DriveSignal(velocity.dx - delta_v, velocity.dx + delta_v);
     }
 }

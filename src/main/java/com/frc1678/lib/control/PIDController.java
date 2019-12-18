@@ -15,11 +15,19 @@ public class PIDController {
     private double integral = 0.0;
 
     private double prevTime = 0.0;
+    private double kDeadband = 0.0;
     
     public PIDController(double p, double i, double d) {
         kP = p;
         kI = i;
         kD = d;
+    }
+
+    public PIDController(double p, double i, double d, double deadband) {
+        kP = p;
+        kI = i;
+        kD = d;
+        kDeadband = deadband;
     }
 
     public void reset() {
@@ -35,6 +43,10 @@ public class PIDController {
         double error = setpoint - sensor;
 
         prevTime = timestamp;
+
+        if (Math.abs(error) < kDeadband) {
+            return 0.0;
+        }
         return (kP * error) + (kI * calculateIntegral(dt, error)) + (kD * calculateDerivative(dt, error));
     }
 

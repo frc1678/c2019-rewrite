@@ -204,6 +204,7 @@ public class Robot extends TimedRobot {
     public void robotPeriodic() {
         try {
             // mSubsystemManager.outputToSmartDashboard();
+            mWrist.outputTelemetry();
             mRobotState.outputToSmartDashboard();
             mAutoModeSelector.outputToSmartDashboard();
             mEnabledLooper.outputToSmartDashboard();
@@ -265,7 +266,8 @@ public class Robot extends TimedRobot {
         if (vision && mLLManager.getHasTarget() && mLLManager.getLimelightOK()) {
             mDrive.updateVisionPID(mControlBoard.getStartVisionPressed());
         } else {
-            mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
+            //mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
+            mDrive.setAssistedDrive(timestamp, throttle, -turn, mControlBoard.getQuickTurn());
         }
 
         if (mControlBoard.getHighGear()) {

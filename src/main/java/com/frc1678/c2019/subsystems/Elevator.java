@@ -213,7 +213,7 @@ public class Elevator extends Subsystem {
 
         // Start with zero power.
         mMaster.set(ControlMode.PercentOutput, 0);
-        setNeutralMode(NeutralMode.Brake);
+        setNeutralMode(NeutralMode.Coast);
     }
 
     public synchronized static Elevator getInstance() {
@@ -325,6 +325,7 @@ public class Elevator extends Subsystem {
             @Override
             public void onStart(double timestamp) {
                 // startLogging();
+                setNeutralMode(NeutralMode.Brake);
             }
 
             @Override
@@ -333,6 +334,7 @@ public class Elevator extends Subsystem {
 
             @Override
             public void onStop(double timestamp) {
+                setNeutralMode(NeutralMode.Coast);
                 stopLogging();
             }
         });
