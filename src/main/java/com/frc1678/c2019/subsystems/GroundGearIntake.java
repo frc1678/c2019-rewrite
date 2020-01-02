@@ -247,7 +247,7 @@ public class GroundGearIntake extends Subsystem {
         if (mCSVWriter != null) {
             mCSVWriter.flush();
             mCSVWriter = null;
-        }
+        }           
     }
 
     public static class PeriodicIO {
