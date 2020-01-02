@@ -57,15 +57,16 @@ public class GroundGearIntake extends Subsystem {
     public static double kIntakeVoltage = -12.0;
     public static double kHoldingVoltage = -4.0;
     public static double kOuttakeVoltage = 10.0;
+    public static double kCarryingVoltage = 10.0;
 
     private static GroundGearIntake mInstance;
 
     public enum WantedAction {
-        IDLE, INTAKE, SCORE, OUTTAKE, STOP_DROPPING_BALLS, DROP, RISE, NONE, START_DROPPING_BALLS
+        NONE, INTAKE, SCORE, OUTTAKE, DROP, RISE, STOP_DROPPING_BALLS, START_DROPPING_BALLS
     }
 
     private enum State {
-        NONE, GROUND_INTAKING, INTAKING, HOLDING, SCORING, OUTTAKING, CARRYING, PICKING_UP, DROP_BALL_WITH_GEAR, IDLE, DROP_BALL_WITHOUT_GEAR
+        NONE, IDLE, GROUND_INTAKING, INTAKING, HOLDING, CARRYING, SCORING, OUTTAKING, PICKING_UP, DROP_BALL_WITH_GEAR, DROP_BALL_WITHOUT_GEAR
     }
 
     private State mState = State.NONE;
@@ -159,6 +160,9 @@ public class GroundGearIntake extends Subsystem {
         case OUTTAKING:
             mPeriodicIO.gear_solenoid = false;
             mPeriodicIO.demand = kOuttakeVoltage;
+        case CARRYING:
+            mPeriodicIO.gear_solenoid = true;
+            mPeriodicIO.demand = kCarryingVoltage;
         default:
             System.out.println("Fell through on Ground Gear Intake states!");
         }
@@ -223,10 +227,8 @@ public class GroundGearIntake extends Subsystem {
             mMaster.set(ControlMode.PercentOutput, mPeriodicIO.demand / 12.0);
             mGearSolenoid.set(mPeriodicIO.gear_solenoid);
         // Cases for each state and what the actuators should be at those states
-
         // Use .set on each of your actuators to whatever output you have been setting
         // from periodicIO. This is also a good place to add limits to your code.
-
     }
 
     @Override
