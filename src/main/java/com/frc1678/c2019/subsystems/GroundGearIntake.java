@@ -241,7 +241,7 @@ public class GroundGearIntake extends Subsystem {
     public synchronized void startLogging() {
         if (mCSVWriter == null) {
             mCSVWriter = new ReflectingCSVWriter<>(
-                    "/home/lvuser//*SUBSYSTEM XXXXXXXXX, make sure it is in CAPS*/-LOGS.csv", PeriodicIO.class);
+                    "/home/lvuser//GroundGearIntake/-LOGS.csv", PeriodicIO.class);
         }
     }
 
