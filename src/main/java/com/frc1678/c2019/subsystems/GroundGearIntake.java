@@ -161,7 +161,7 @@ public class GroundGearIntake extends Subsystem {
             mPeriodicIO.gear_solenoid = false;
             mPeriodicIO.demand = kOuttakeVoltage;
         case CARRYING:
-            mPeriodicIO.gear_solenoid = true;
+            mPeriodicIO.gear_solenoid = false;
             mPeriodicIO.demand = kCarryingVoltage;
         default:
             System.out.println("Fell through on Ground Gear Intake states!");
@@ -215,7 +215,7 @@ public class GroundGearIntake extends Subsystem {
     public synchronized void readPeriodicInputs() {
         // Update anything you want to read from sensors or actuators, these are usually
         // in your inputs under periodicIO
-        mPeriodicIO.current = mMaster.getOutputCurrent();
+        mPeriodicIO.current = mMaster.getOut+putCurrent();
         //mPeriodicIO.gear_solenoid = mGearSolenoid.getOutputCurrent();
         if (mCSVWriter != null) {
             mCSVWriter.add(mPeriodicIO);
