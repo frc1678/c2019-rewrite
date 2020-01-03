@@ -99,7 +99,8 @@ public class GroundGearIntake extends Subsystem {
     @Override
     public synchronized void outputTelemetry() {
         // Anything you want displayed on the SmartDashboard
-
+        SmartDashboard.putNumber("Motor Voltage", mPeriodicIO.demand);
+        SmartDashboard.putBoolean("Solenoid State", mPeriodicIO.gear_solenoid);
         if (mCSVWriter != null) {
             mCSVWriter.write();
         }
