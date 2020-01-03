@@ -126,27 +126,27 @@ public class GroundGearIntake extends Subsystem {
         // Cases for each state and what the actuators should be at those states
             case IDLE:
                 mPeriodicIO.GearIntSolenoid = false;
-                mPeriodicIO.demand = 0;
+                mPeriodicIO.demand = 0.0;
             case INTAKE:
                 mPeriodicIO.GearIntSolenoid = true;
                 mPeriodicIO.demand = kVoltIntake;
             case PICKUP:
                 mPeriodicIO.GearIntSolenoid = false;
-                mPeriodicIO.demand = kVoltIntake;
+                mPeriodicIO.demand = 0.0;
             case CARRY:
                 mPeriodicIO.GearIntSolenoid = false;
-                mPeriodicIO.demand = 0;
+                mPeriodicIO.demand = kVoltCarry;
             case SCORING:
                 mPeriodicIO.GearIntSolenoid = false;
-                mPeriodicIO.demand = kVoltOut;
+                mPeriodicIO.demand = 0.0;
             case OUTTAKE:
-                mPeriodicIO.GearIntSolenoid = false;
+                mPeriodicIO.GearIntSolenoid = true;
                 mPeriodicIO.demand = kVoltOut;
             case BALLDROP_GEAR:
                 mPeriodicIO.GearIntSolenoid = true;
-                mPeriodicIO.demand = 0;
+                mPeriodicIO.demand = 2.5;
             case BALLDROP_NOGEAR:
-                mPeriodicIO.GearIntSolenoid = false;
+                mPeriodicIO.GearIntSolenoid = true;
                 mPeriodicIO.demand = 0;
 
         }
