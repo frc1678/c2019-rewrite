@@ -146,7 +146,7 @@ public class GroundGearIntake extends Subsystem {
             mPeriodicIO.gear_solenoid = false;
             mPeriodicIO.demand = 0;
         case GROUND_INTAKING:
-            mPeriodicIO.gear_solenoid = false;
+            mPeriodicIO.gear_solenoid = true;
             mPeriodicIO.demand = kIntakeVoltage;
         case INTAKING:
             mPeriodicIO.gear_solenoid = true;
@@ -155,10 +155,10 @@ public class GroundGearIntake extends Subsystem {
             mPeriodicIO.gear_solenoid = true;
             mPeriodicIO.demand = kHoldingVoltage;
         case SCORING:
-            mPeriodicIO.gear_solenoid = true;
+            mPeriodicIO.gear_solenoid = false;
             mPeriodicIO.demand = kOuttakeVoltage;
         case OUTTAKING:
-            mPeriodicIO.gear_solenoid = false;
+            mPeriodicIO.gear_solenoid = true;
             mPeriodicIO.demand = kOuttakeVoltage;
         case CARRYING:
             mPeriodicIO.gear_solenoid = false;
@@ -176,7 +176,7 @@ public class GroundGearIntake extends Subsystem {
             break;
           case RISE:
             if (mState == State.INTAKING) {
-                mState = State.NONE;
+                mState = State.IDLE;
             }
             break;
           case SCORE:
@@ -186,7 +186,7 @@ public class GroundGearIntake extends Subsystem {
             break;
           case NONE:
             if (mState == State.SCORING) {
-                mState = State.NONE;
+                mState = State.IDLE;
             }
             break;
           case OUTTAKE:
@@ -215,7 +215,7 @@ public class GroundGearIntake extends Subsystem {
     public synchronized void readPeriodicInputs() {
         // Update anything you want to read from sensors or actuators, these are usually
         // in your inputs under periodicIO
-        mPeriodicIO.current = mMaster.getOut+putCurrent();
+        mPeriodicIO.current = mMaster.getOutputCurrent();
         //mPeriodicIO.gear_solenoid = mGearSolenoid.getOutputCurrent();
         if (mCSVWriter != null) {
             mCSVWriter.add(mPeriodicIO);
