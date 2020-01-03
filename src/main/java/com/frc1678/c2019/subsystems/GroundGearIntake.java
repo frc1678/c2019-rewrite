@@ -8,6 +8,7 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import jdk.jfr.Percentage;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Solenoid;
 
@@ -106,6 +107,7 @@ public class GroundGearIntake extends Subsystem {
 
     @Override
     public void stop() {
+        setOpenLoop();
     }
 
     @Override
@@ -167,7 +169,10 @@ public class GroundGearIntake extends Subsystem {
             System.out.println("Fell through on Ground Gear Intake states!");
         }
     }
-
+    public synchronized void setOpenLoop(double Percent){
+        boolean mRunningManual = true;
+        mPeriodicIO.demand = Percent;
+    }
     public void setState(WantedAction wanted_state) {
         //possible states:         NONE, GROUND_INTAKING, INTAKING, HOLDING, SCORING, OUTTAKING
         switch (wanted_state) {
