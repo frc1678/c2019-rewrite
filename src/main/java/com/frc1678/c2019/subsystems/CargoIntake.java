@@ -73,7 +73,6 @@ public class CargoIntake extends Subsystem {
     public synchronized void outputTelemetry() {
         SmartDashboard.putBoolean("CargoProxy", mPeriodicIO.has_cargo);
         SmartDashboard.putNumber("MotorSetpoint", mPeriodicIO.demand);
-
         SmartDashboard.putNumber("Cargo Current", mPeriodicIO.current);
 
         if (mCSVWriter != null) {

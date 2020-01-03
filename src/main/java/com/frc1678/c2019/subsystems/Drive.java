@@ -52,8 +52,8 @@ public class Drive extends Subsystem {
 
     private final LimelightManager mLLManager = LimelightManager.getInstance();
     private final PIDController throttlePID = new PIDController(.15, 0.00, 0.0);
-    private final PIDController throttlePID2 = new PIDController(.15, 0.00, 0.0);
-    private final PIDController steeringPID = new PIDController(.2, 0.00, 0.01);    
+    private final PIDController throttlePID2 = new PIDController(.25, 0.00, 0.0);
+    private final PIDController steeringPID = new PIDController(.3, 0.00, 0.03);    
 
     private final Loop mLoop = new Loop() {
         @Override
@@ -200,7 +200,7 @@ public class Drive extends Subsystem {
        
         if (firstRun) {
           throttlePID.setGoal(24.0);
-          throttlePID2.setGoal(14.0);
+          throttlePID2.setGoal(10.0);
           steeringPID.setGoal(0.0);
 
           throttlePID.reset();
@@ -327,9 +327,9 @@ public class Drive extends Subsystem {
         SmartDashboard.putNumber("Left Current", mPeriodicIO.left_current);
         SmartDashboard.putNumber("Right Current", mPeriodicIO.right_current);
 
-        SmartDashboard.putNumber("x err", mPeriodicIO.error.getTranslation().x());
-        SmartDashboard.putNumber("y err", mPeriodicIO.error.getTranslation().y());
-        SmartDashboard.putNumber("theta err", mPeriodicIO.error.getRotation().getDegrees());
+        SmartDashboard.putNumber("x setpoint", mPeriodicIO.path_setpoint.state().getTranslation().x());
+        SmartDashboard.putNumber("y setpoint", mPeriodicIO.path_setpoint.state().getTranslation().y());
+        SmartDashboard.putNumber("theta setpoint", mPeriodicIO.path_setpoint.state().getRotation().getDegrees());
         if(getHeading() != null) {
             SmartDashboard.putNumber("Gyro Heading", getHeading().getDegrees());
         }

@@ -20,7 +20,7 @@ import com.frc1678.lib.logging.*;
 import com.team254.lib.geometry.Pose2d;
 import com.team254.lib.util.*;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.TimedRobot;
+import com.team254.lib.wpilib.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.Arrays;
@@ -197,6 +197,11 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void robotPeriodic() {
+        outputToSmartDashboard();
+    }
+
+    @Override
     public void disabledPeriodic() {
         SmartDashboard.putString("Match Cycle", "DISABLED");
 
@@ -228,7 +233,6 @@ public class Robot extends TimedRobot {
     public void autonomousPeriodic() {
         SmartDashboard.putString("Match Cycle", "AUTONOMOUS");
 
-        outputToSmartDashboard();
         try {
             if (mWantsDriverAuto || mAutoModeExecutor.isInterrupted()) {
                 manualControl();
@@ -254,8 +258,6 @@ public class Robot extends TimedRobot {
             mDrive.setOpenLoop(mCheesyDriveHelper.cheesyDrive(throttle, turn, mControlBoard.getQuickTurn(), false));
         }
        
-        outputToSmartDashboard();
-
         final boolean cargo_preset = mCargoIntake.hasCargo();
         double desired_height = Double.NaN;
         double desired_angle = Double.NaN;
@@ -384,7 +386,6 @@ public class Robot extends TimedRobot {
 
         try {
             manualControl();
-            outputToSmartDashboard();
         } catch (Throwable t) {
             CrashTracker.logThrowableCrash(t);
             throw t;
@@ -401,9 +402,9 @@ public class Robot extends TimedRobot {
         Drive.getInstance().outputTelemetry();
         Wrist.getInstance().outputTelemetry();
         CargoIntake.getInstance().outputTelemetry();
-        // HatchIntake.getInstance().outputTelemetry();
-        // Elevator.getInstance().outputTelemetry();
-        // Infrastructure.getInstance().outputTelemetry();
+        HatchIntake.getInstance().outputTelemetry();
+        Elevator.getInstance().outputTelemetry();
+        Infrastructure.getInstance().outputTelemetry();
         LimelightManager.getInstance().outputTelemetry();
         mEnabledLooper.outputToSmartDashboard();
         mLoggingLooper.outputToSmartDashboard();
