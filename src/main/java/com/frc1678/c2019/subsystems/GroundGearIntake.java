@@ -88,6 +88,10 @@ public class GroundGearIntake extends Subsystem {
 
     @Override
     public void stop() {
+        setOpenLoop(0);
+    }
+    
+    private void setOpenLoop(int i) {
     }
 
     @Override
